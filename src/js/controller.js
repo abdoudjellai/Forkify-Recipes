@@ -137,9 +137,12 @@ const init =  function() {
   paginationView.addHandlerClick(controlPagination) ; 
   bookmarksView.addHandlerrestoreBookmarks(controlBookmarks)
   SearchView.addHandlerSearch(controlSearchResults ); 
-  console.log('hello');
+  newFeature();
 }
 init() ;  
 
+const newFeature = function() {
+  console.log('welcome to the application')
+}
 
 
