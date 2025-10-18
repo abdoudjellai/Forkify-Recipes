@@ -1,0 +1,22 @@
+{
+  "name": "starter",
+  "version": "1.0.0",
+  "default": "index.html",
+  "scripts": {
+    "start": "parcel index.html",
+    "build": "parcel build index.html --dist-dir ./dist"
+  },
+  "author": "abdou",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "@parcel/transformer-sass": "^2.16.0",
+    "parcel": "^2.16.0"
+  },
+  "dependencies": {
+    "core-js": "^3.45.1",
+    "git": "^0.1.5",
+    "regenerator-runtime": "^0.14.1",
+    "sass": "^1.93.2"
+  }
+}
