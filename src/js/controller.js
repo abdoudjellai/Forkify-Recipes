@@ -1,147 +1,131 @@
-import * as model from './model.js'
-import recipeView from './views/recipeView.js';
-import SearchView from './views/searchView.js';
-import ResulstView from './views/resultsView.js'
-import paginationView from './views/paginationView.js';
-import bookmarksView from './views/bookmarksView.js'
-import addRecipeView from './views/addRecipeView.js';
+import * as model from './model.js';
 import { MODAL_CLOSE_SEC } from './config.js';
+import recipeView from './views/recipeView.js';
+import searchView from './views/searchView.js';
+import resultsView from './views/resultsView.js';
+import paginationView from './views/paginationView.js';
+import bookmarksView from './views/bookmarksView.js';
+import addRecipeView from './views/addRecipeView.js';
+
 import 'core-js/stable';
 import 'regenerator-runtime/runtime';
-import resultsView from './views/resultsView.js';
+import { async } from 'regenerator-runtime';
 
-// if(module.hot){
-//   module.hot.accept()
-// }
-
-const controlRecipe = async function () {
-  // LOAD RECIPE FROM API 
+const controlRecipes = async function () {
   try {
-    const recipeID = window.location.hash.slice(1) ;
-    
-    
-    if(! recipeID) return  
-    recipeView.renderSpinner() ;
-    
-    
-    // loading recipe 
-    await model.loadRecipe(recipeID) ;
-    
-    // RENDER RECIPE TO THE PAGE 
-    recipeView.render(model.state.recipe) ;
-    
-    resultsView.update(model.getSearchResultPage())
+    const id = window.location.hash.slice(1);
 
-    bookmarksView.update(model.state.bookmarks)
+    if (!id) return;
+    recipeView.renderSpinner();
 
-  } catch(err) {
-    console.log(err)
-    recipeView.showError();
+    // 0) Update results view to mark selected search result
+    resultsView.update(model.getSearchResultsPage());
+
+    // 1) Updating bookmarks view
+    bookmarksView.update(model.state.bookmarks);
+
+    // 2) Loading recipe
+    await model.loadRecipe(id);
+
+    // 3) Rendering recipe
+    recipeView.render(model.state.recipe);
+  } catch (err) {
+    recipeView.renderError();
+    console.error(err);
   }
-  
-}
+};
 
-const  controlSearchResults =async function() {
-    try {
-      
-      //get search query
-      const query =  SearchView.getQuery()
-      if( !query ) return ;
-      ResulstView.renderSpinner()
+const controlSearchResults = async function () {
+  try {
+    resultsView.renderSpinner();
 
-      // await search result
-      await  model.loadSearchResult(query) ; 
+    // 1) Get search query
+    const query = searchView.getQuery();
+    if (!query) return;
 
-     // RENDER RECIPE TO THE PAGE 
-      resultsView.render(model.getSearchResultPage()) ;
+    // 2) Load search results
+    await model.loadSearchResults(query);
 
-      console.log(model.state.search.result)
-      // render initial pagination buttons
-      paginationView.render(model.state.search)
+    // 3) Render results
+    resultsView.render(model.getSearchResultsPage());
 
-    } catch (err) {
-      resultsView.showError()
-    }
-} ; 
+    // 4) Render initial pagination buttons
+    paginationView.render(model.state.search);
+  } catch (err) {
+    console.log(err);
+  }
+};
 
-const controlPagination = function(goToPage) {
+const controlPagination = function (goToPage) {
+  // 1) Render NEW results
+  resultsView.render(model.getSearchResultsPage(goToPage));
 
-  resultsView.render(model.getSearchResultPage(goToPage)) ;
-      
-  // render initial pagination buttons
-  paginationView.render(model.state.search)
-}
+  // 2) Render NEW pagination buttons
+  paginationView.render(model.state.search);
+};
 
-const controlServings = function(servings) {
-
+const controlServings = function (newServings) {
   // Update the recipe servings (in state)
-  model.updateServings(servings)
-  // Update the recipe view 
-  recipeView.update(model.state.recipe) ;
-    
-}
+  model.updateServings(newServings);
 
-const controlAddBookmark = function()  {
+  // Update the recipe view
+  recipeView.update(model.state.recipe);
+};
 
-  if(!model.state.recipe.bookmarked ){
-    model.addBookMark(model.state.recipe)
-    
-  }
-  else
-    model.deleteBookmark(model.state.recipe.id)
-  
-    recipeView.update(model.state.recipe)
-      
-    bookmarksView.render(model.state.bookmarks)
-    
-}
-const controlBookmarks = function() {
-  bookmarksView.render(model.state.bookmarks)
-}
-const controlAddRecipe = async function(newRecipe) {
-  
+const controlAddBookmark = function () {
+  // 1) Add/remove bookmark
+  if (!model.state.recipe.bookmarked) model.addBookmark(model.state.recipe);
+  else model.deleteBookmark(model.state.recipe.id);
+
+  // 2) Update recipe view
+  recipeView.update(model.state.recipe);
+
+  // 3) Render bookmarks
+  bookmarksView.render(model.state.bookmarks);
+};
+
+const controlBookmarks = function () {
+  bookmarksView.render(model.state.bookmarks);
+};
+
+const controlAddRecipe = async function (newRecipe) {
   try {
-    addRecipeView.renderSpinner()
-    //uploaf the new recipe data 
-    await model.uploadRecipe(newRecipe)
+    // Show loading spinner
+    addRecipeView.renderSpinner();
+
+    // Upload the new recipe data
+    await model.uploadRecipe(newRecipe);
     console.log(model.state.recipe);
-    
-    //render recipe 
-    recipeView.render(model.state.recipe)
 
-    
-    //show message 
-    addRecipeView.showMessage()
+    // Render recipe
+    recipeView.render(model.state.recipe);
 
-    //render bookmarks view
-    bookmarksView.render(model.state.bookmarks)
+    // Success message
+    addRecipeView.renderMessage();
 
-    //change ID in the url 
-    window.history.pushState(null , '' , `#${model.state.recipe.id}`)
+    // Render bookmark view
+    bookmarksView.render(model.state.bookmarks);
 
-    //close form window 
+    // Change ID in URL
+    window.history.pushState(null, '', `#${model.state.recipe.id}`);
+
+    // Close form window
     setTimeout(function () {
-      addRecipeView.toggleWindow() 
-      
-    },MODAL_CLOSE_SEC * 1000)
-  }catch(err) {
-    addRecipeView.showError(err.message)
+      addRecipeView.toggleWindow();
+    }, MODAL_CLOSE_SEC * 1000);
+  } catch (err) {
+    console.error('💥', err);
+    addRecipeView.renderError(err.message);
   }
+};
 
-}
-const newFeature = function() {
-  console.log('welcome to the application')
-}
-const init =  function() {
-  addRecipeView.addHnadlerUpload(controlAddRecipe)
-  recipeView.addHandlerRender(controlRecipe);
+const init = function () {
+  bookmarksView.addHandlerRender(controlBookmarks);
+  recipeView.addHandlerRender(controlRecipes);
   recipeView.addHandlerUpdateServings(controlServings);
-  recipeView.addHandlerBookMark(controlAddBookmark);
-  paginationView.addHandlerClick(controlPagination) ; 
-  bookmarksView.addHandlerrestoreBookmarks(controlBookmarks)
-  SearchView.addHandlerSearch(controlSearchResults ); 
-  newFeature();
-}
-init() ;   
-
-
+  recipeView.addHandlerAddBookmark(controlAddBookmark);
+  searchView.addHandlerSearch(controlSearchResults);
+  paginationView.addHandlerClick(controlPagination);
+  addRecipeView.addHandlerUpload(controlAddRecipe);
+};
+init();
