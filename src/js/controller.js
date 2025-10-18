@@ -129,6 +129,9 @@ const controlAddRecipe = async function(newRecipe) {
   }
 
 }
+const newFeature = function() {
+  console.log('welcome to the application')
+}
 const init =  function() {
   addRecipeView.addHnadlerUpload(controlAddRecipe)
   recipeView.addHandlerRender(controlRecipe);
@@ -140,8 +143,5 @@ const init =  function() {
   newFeature();
 }
 init() ;   
-const newFeature = function() {
-  console.log('welcome to the application')
-}
 
 
