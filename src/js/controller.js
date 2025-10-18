@@ -139,8 +139,7 @@ const init =  function() {
   SearchView.addHandlerSearch(controlSearchResults ); 
   newFeature();
 }
-init() ;  
-
+init() ;   
 const newFeature = function() {
   console.log('welcome to the application')
 }
